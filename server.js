@@ -61,6 +61,10 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/api/check-code", requireAdminCode, (_req, res) => {
+  res.json({ ok: true });
+});
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
