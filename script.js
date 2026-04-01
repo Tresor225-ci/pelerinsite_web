@@ -582,7 +582,7 @@ function buildCardHtml(resource) {
 
         <div class="card-actions">
           <a class="download-btn" href="${url}" target="_blank" rel="noopener">${escapeHtml(t("openLabel"))}</a>
-          <a class="download-btn" href="${downloadUrl}" download>${escapeHtml(UI_TEXT.download)}</a>
+          <a class="download-btn" href="${downloadUrl}" target="_blank" rel="noopener">${escapeHtml(UI_TEXT.download)}</a>
           ${deleteBtn}
           <span class="format-pill">${format.toUpperCase() || "FILE"}</span>
         </div>
@@ -619,7 +619,7 @@ function buildListItemHtml(resource) {
       </div>
       <div class="list-actions">
         <a class="list-open" href="${url}" target="_blank" rel="noopener">${escapeHtml(t("openLabel"))}</a>
-        <a class="list-open" href="${downloadUrl}" download>${escapeHtml(UI_TEXT.download)}</a>
+        <a class="list-open" href="${downloadUrl}" target="_blank" rel="noopener">${escapeHtml(UI_TEXT.download)}</a>
         ${deleteBtn}
       </div>
     </article>
