@@ -545,6 +545,7 @@ function buildCardHtml(resource) {
   const title = escapeHtml(resource.title || "Untitled");
   const subject = escapeHtml(resource.subject || "General");
   const format = escapeHtml(String(resource.format || ""));
+  const url = escapeHtml(resource.url || "#");
   const downloadUrl = escapeHtml(resource.downloadUrl || resource.url || "#");
   const dotColor = subjectDotColor(resource.subject || "General");
 
@@ -580,7 +581,8 @@ function buildCardHtml(resource) {
         ${preview}
 
         <div class="card-actions">
-          <a class="download-btn" href="${downloadUrl}" target="_blank" rel="noopener">${escapeHtml(UI_TEXT.download)}</a>
+          <a class="download-btn" href="${url}" target="_blank" rel="noopener">${escapeHtml(t("openLabel"))}</a>
+          <a class="download-btn" href="${downloadUrl}" download>${escapeHtml(UI_TEXT.download)}</a>
           ${deleteBtn}
           <span class="format-pill">${format.toUpperCase() || "FILE"}</span>
         </div>
@@ -617,7 +619,7 @@ function buildListItemHtml(resource) {
       </div>
       <div class="list-actions">
         <a class="list-open" href="${url}" target="_blank" rel="noopener">${escapeHtml(t("openLabel"))}</a>
-        <a class="list-open" href="${downloadUrl}" target="_blank" rel="noopener">${escapeHtml(UI_TEXT.download)}</a>
+        <a class="list-open" href="${downloadUrl}" download>${escapeHtml(UI_TEXT.download)}</a>
         ${deleteBtn}
       </div>
     </article>

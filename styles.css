@@ -1204,6 +1204,12 @@ body {
 
   .badge {
     max-width: 100%;
+    font-size: 11px;
+    padding: 6px 9px;
+  }
+
+  .file-name {
+    font-size: 14px;
   }
 
   .download-btn,
@@ -1248,6 +1254,10 @@ body {
 
   .list-title {
     font-size: 13px;
+  }
+
+  .list-meta {
+    font-size: 11px;
   }
 
   .whatsapp-fab {
