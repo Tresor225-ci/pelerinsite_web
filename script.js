@@ -90,6 +90,22 @@ function initTabs() {
   const tabbar = document.querySelector(".tabbar");
   if (!tabbar) return;
 
+  const sidebar = document.getElementById("sidebar");
+  const sidebarOverlay = document.getElementById("sidebarOverlay");
+
+  function setSidebarOpen(open) {
+    if (!sidebar || !sidebarOverlay) return;
+    const next = Boolean(open);
+    sidebar.classList.toggle("is-open", next);
+    sidebarOverlay.hidden = !next;
+    if (next) document.body.dataset.sidebarOpen = "1";
+    else delete document.body.dataset.sidebarOpen;
+  }
+
+  function closeSidebar() {
+    setSidebarOpen(false);
+  }
+
   tabbar.addEventListener("click", (e) => {
     const target = e.target instanceof Element ? e.target.closest(".tab") : null;
     if (!target) return;
@@ -97,9 +113,12 @@ function initTabs() {
     const tab = String(target.getAttribute("data-tab") || "home");
     if (tab === "library") {
       setActiveTab("library");
+      const isOpen = document.body.dataset.sidebarOpen === "1";
+      setSidebarOpen(!isOpen);
       return;
     }
 
+    closeSidebar();
     setActiveTab(tab);
   });
 
@@ -123,6 +142,58 @@ async function loadRemoteResources() {
   } catch {
     hasRemoteLoaded = false;
   }
+}
+
+function initDeleteActions() {
+  const grid = document.getElementById("resourcesGrid");
+  if (!grid) return;
+
+  grid.addEventListener("click", async (e) => {
+    const target = e.target instanceof Element ? e.target.closest("[data-action=delete]") : null;
+    if (!target) return;
+
+    const isContributor = localStorage.getItem("plr_is_contributor") === "1";
+    if (!isContributor) return;
+
+    const id = String(target.getAttribute("data-id") || "").trim();
+    if (!id) return;
+
+    const ok = window.confirm(t("msgDeleteConfirm"));
+    if (!ok) return;
+
+    const adminCode = String(sessionStorage.getItem("plr_admin_code") || "").trim();
+    if (!adminCode) {
+      showToast(t("msgDeleteNeedCode"), "error");
+      return;
+    }
+
+    try {
+      const url = `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(id)}`;
+      const resp = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "x-admin-code": adminCode,
+        },
+      });
+
+      if (!resp.ok) throw new Error("delete_failed");
+
+      remoteResources = remoteResources.filter((r) => String(r.id) !== id);
+      resources.splice(
+        0,
+        resources.length,
+        ...resources.filter((r) => String(r.id) !== id)
+      );
+
+      const q = (document.getElementById("searchInput")?.value || "").toString();
+      UI_STATE.query = q;
+      renderCounts({ query: UI_STATE.query });
+      renderResources({ filter: UI_STATE.filter, query: UI_STATE.query });
+      showToast(t("msgDeleteSuccess"), "success");
+    } catch {
+      showToast(t("msgDeleteFailed"), "error");
+    }
+  });
 }
 
 const SUBJECT_COLORS = {
@@ -189,6 +260,12 @@ const I18N = {
 
     openLabel: "Öffnen",
 
+    deleteLabel: "Löschen",
+    msgDeleteConfirm: "Diese Ressource löschen?",
+    msgDeleteNeedCode: "Öffne Einstellungen und bestätige den Contributor-Code.",
+    msgDeleteSuccess: "Ressource gelöscht.",
+    msgDeleteFailed: "Löschen fehlgeschlagen.",
+
     msgThemeDark: "Theme: Full dark",
     msgThemeLight: "Theme: Full blanc",
     msgThemeArd: "Theme: ARD Sounds",
@@ -232,6 +309,12 @@ const I18N = {
     addSave: "Enregistrer",
 
     openLabel: "Ouvrir",
+
+    deleteLabel: "Supprimer",
+    msgDeleteConfirm: "Supprimer cette ressource ?",
+    msgDeleteNeedCode: "Ouvre Paramètres et valide le code contributeur.",
+    msgDeleteSuccess: "Ressource supprimée.",
+    msgDeleteFailed: "Suppression impossible.",
 
     msgThemeDark: "Thème: Full dark",
     msgThemeLight: "Thème: Full blanc",
@@ -863,9 +946,8 @@ function initAddModal() {
 function initSidebar() {
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
-  const toggle = document.getElementById("filterToggle");
 
-  if (!sidebar || !overlay || !toggle) return;
+  if (!sidebar || !overlay) return;
 
   function open() {
     sidebar.classList.add("is-open");
@@ -874,14 +956,9 @@ function initSidebar() {
 
   function close() {
     sidebar.classList.remove("is-open");
+    delete document.body.dataset.sidebarOpen;
     overlay.hidden = true;
   }
-
-  toggle.addEventListener("click", () => {
-    const isOpen = sidebar.classList.contains("is-open");
-    if (isOpen) close();
-    else open();
-  });
 
   overlay.addEventListener("click", close);
 
@@ -898,7 +975,7 @@ function initSidebar() {
 }
 
 function initSettingsModal() {
-  const openBtn = document.getElementById("menuToggle");
+  const openBtn = document.getElementById("menuToggle") || document.getElementById("menuToggleSidebar");
   const modal = document.getElementById("settingsModal");
   const overlay = document.getElementById("settingsModalOverlay");
   const closeBtn = document.getElementById("settingsModalClose");
@@ -1163,6 +1240,7 @@ async function bootstrap() {
   initSort();
   initWhatsAppFab();
   initSidebar();
+  initDeleteActions();
   initTypeGroup();
   initAddModal();
   initSettingsModal();

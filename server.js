@@ -15,17 +15,22 @@ const {
   MAX_UPLOAD_MB = "200",
 } = process.env;
 
+function normalizeAdminCode(value) {
+  return String(value || "").trim();
+}
+
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
 }
 
 const allowedAdminCodes = String(ADMIN_CODES || "")
   .split(",")
-  .map((s) => s.trim())
+  .map((s) => normalizeAdminCode(s))
   .filter(Boolean);
 
-if (ADMIN_CODE && !allowedAdminCodes.includes(ADMIN_CODE)) {
-  allowedAdminCodes.push(ADMIN_CODE);
+const normalizedSingleAdminCode = normalizeAdminCode(ADMIN_CODE);
+if (normalizedSingleAdminCode && !allowedAdminCodes.includes(normalizedSingleAdminCode)) {
+  allowedAdminCodes.push(normalizedSingleAdminCode);
 }
 
 if (allowedAdminCodes.length === 0) {
@@ -73,8 +78,8 @@ const upload = multer({
 });
 
 function requireAdminCode(req, res, next) {
-  const code = req.header("x-admin-code") || req.body?.adminCode;
-  if (!code || !allowedAdminCodes.includes(String(code))) {
+  const code = normalizeAdminCode(req.header("x-admin-code") || req.body?.adminCode);
+  if (!code || !allowedAdminCodes.includes(code)) {
     return res.status(401).json({ error: "unauthorized" });
   }
   return next();
@@ -126,6 +131,34 @@ app.get("/api/resources", async (_req, res) => {
   }));
 
   return res.json({ resources: mapped });
+});
+
+app.delete("/api/resources/:id", requireAdminCode, async (req, res) => {
+  try {
+    const id = String(req.params?.id || "").trim();
+    if (!id) return res.status(400).json({ error: "missing_id" });
+
+    const { data: row, error: readErr } = await supabase
+      .from("resources")
+      .select("id,storage_path")
+      .eq("id", id)
+      .single();
+
+    if (readErr) return res.status(404).json({ error: "not_found" });
+
+    const storagePath = String(row?.storage_path || "").trim();
+    if (storagePath) {
+      const { error: removeErr } = await supabase.storage.from(SUPABASE_BUCKET).remove([storagePath]);
+      if (removeErr) return res.status(500).json({ error: removeErr.message });
+    }
+
+    const { error: deleteErr } = await supabase.from("resources").delete().eq("id", id);
+    if (deleteErr) return res.status(500).json({ error: deleteErr.message });
+
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ error: e?.message || "server_error" });
+  }
 });
 
 app.post("/api/upload", upload.single("file"), requireAdminCode, async (req, res) => {

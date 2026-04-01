@@ -317,6 +317,14 @@ body {
   display: none;
  }
 
+ body[data-tab="library"]:not([data-sidebar-open="1"]) .layout {
+  grid-template-columns: 1fr;
+ }
+
+ body[data-tab="library"]:not([data-sidebar-open="1"]) .sidebar {
+  display: none;
+ }
+
 .sidebar {
   position: sticky;
   top: 73px;
@@ -324,6 +332,7 @@ body {
   padding: 18px 16px 20px;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
+  z-index: 20;
 }
 
 .sidebar-section {
@@ -631,6 +640,21 @@ body {
  .list-open:hover {
   border-color: rgba(45, 108, 255, 0.65);
   box-shadow: 0 0 0 4px rgba(45, 108, 255, 0.16);
+ }
+
+ .danger-btn {
+  border: 1px solid rgba(255, 120, 120, 0.35);
+  background: rgba(255, 60, 60, 0.10);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 900;
+ }
+
+ .danger-btn:hover {
+  border-color: rgba(255, 120, 120, 0.65);
+  box-shadow: 0 0 0 4px rgba(255, 60, 60, 0.14);
  }
 
 .card {
@@ -1047,24 +1071,42 @@ body {
     padding: 12px 0;
   }
 
+  .brand {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+
   .top-search {
     flex-basis: 100%;
     order: 10;
+    min-width: 0;
+  }
+
+  .top-search input {
+    height: 42px;
+    padding: 10px 12px;
   }
 
   .top-actions {
     order: 11;
     width: 100%;
     justify-content: flex-end;
-  }
-
-  .top-actions {
     gap: 8px;
   }
 
-  .brand {
-    min-width: 0;
-    flex: 1;
+  .menu-toggle,
+  .add-toggle {
+    height: 42px;
+  }
+
+  .menu-toggle {
+    width: 42px;
   }
 
   .subtitle {
@@ -1125,6 +1167,20 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .card-inner {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .list-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .list-title {
+    font-size: 13px;
+  }
+
   .whatsapp-fab {
     right: 12px;
     bottom: calc(84px + env(safe-area-inset-bottom));
@@ -1134,6 +1190,24 @@ body {
     bottom: calc(10px + env(safe-area-inset-bottom));
     width: calc(100% - 16px);
     padding: 10px;
+  }
+
+  .tab {
+    min-height: 46px;
+  }
+
+  .chips {
+    margin: 12px 0 0;
+  }
+
+  .chips-row {
+    gap: 8px;
+    padding: 8px 2px 2px;
+  }
+
+  .filter-chip {
+    padding: 9px 12px;
+    font-size: 13px;
   }
 
   .layout {
