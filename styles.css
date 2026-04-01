@@ -431,6 +431,10 @@ body {
   min-width: 220px;
 }
 
+ .brand-text {
+  min-width: 0;
+ }
+
 .brand-mark {
   width: 44px;
   height: 44px;
@@ -609,6 +613,12 @@ body {
   font-size: 14px;
   font-weight: 900;
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
  }
 
  .list-meta {
@@ -690,7 +700,12 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  min-width: 0;
 }
+
+ .file > div {
+  min-width: 0;
+ }
 
 .file-icon {
   width: 42px;
@@ -707,6 +722,12 @@ body {
   margin: 0;
   font-size: 15px;
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .file-meta {

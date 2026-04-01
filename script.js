@@ -176,7 +176,13 @@ function initDeleteActions() {
         },
       });
 
-      if (!resp.ok) throw new Error("delete_failed");
+      if (!resp.ok) {
+        if (resp.status === 401 || resp.status === 403) {
+          showToast(t("msgDeleteNeedCode"), "error");
+          throw new Error("unauthorized");
+        }
+        throw new Error("delete_failed");
+      }
 
       remoteResources = remoteResources.filter((r) => String(r.id) !== id);
       resources.splice(
@@ -991,7 +997,9 @@ function initSidebar() {
 }
 
 function initSettingsModal() {
-  const openBtn = document.getElementById("menuToggle") || document.getElementById("menuToggleSidebar");
+  const openBtnTop = document.getElementById("menuToggle");
+  const openBtnSide = document.getElementById("menuToggleSidebar");
+  const openBtns = [openBtnTop, openBtnSide].filter(Boolean);
   const modal = document.getElementById("settingsModal");
   const overlay = document.getElementById("settingsModalOverlay");
   const closeBtn = document.getElementById("settingsModalClose");
@@ -999,7 +1007,7 @@ function initSettingsModal() {
   const form = document.getElementById("settingsForm");
   const statusNode = document.getElementById("settingsStatus");
 
-  if (!openBtn || !modal || !overlay || !closeBtn || !cancelBtn || !form) return;
+  if (openBtns.length === 0 || !modal || !overlay || !closeBtn || !cancelBtn || !form) return;
 
   const apiInput = form.querySelector('input[name="apiBaseUrl"]');
   const waNumbers = document.getElementById("waNumbers");
@@ -1041,6 +1049,7 @@ function initSettingsModal() {
     const code = String(contributorCodeInput?.value || "").trim();
     if (!code) {
       setContributorEnabled(false);
+      sessionStorage.removeItem("plr_admin_code");
       setStatus(t("msgWrongCode"), "error");
       return;
     }
@@ -1057,6 +1066,7 @@ function initSettingsModal() {
       if (!resp.ok) throw new Error("unauthorized");
 
       setContributorEnabled(true);
+      sessionStorage.setItem("plr_admin_code", code);
       setStatus("OK", "success");
 
       const numbers = getStoredWhatsAppNumbers();
@@ -1082,6 +1092,7 @@ function initSettingsModal() {
       }
     } catch {
       setContributorEnabled(false);
+      sessionStorage.removeItem("plr_admin_code");
       setStatus(t("msgWrongCode"), "error");
     }
   }
@@ -1162,7 +1173,7 @@ function initSettingsModal() {
     form.reset();
   }
 
-  openBtn.addEventListener("click", open);
+  for (const btn of openBtns) btn.addEventListener("click", open);
   overlay.addEventListener("click", close);
   closeBtn.addEventListener("click", close);
   cancelBtn.addEventListener("click", close);
