@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PLR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <button class="menu-toggle" type="button" id="menuToggle" aria-label="Einstellungen">
+          <span class="menu-bars" aria-hidden="true"></span>
+        </button>
+
+        <button class="add-toggle" type="button" id="addToggle" aria-label="Ressource hinzufügen"><span id="uiAddToggle">+ Hinzufügen</span></button>
+
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">PLR</div>
+          <div class="brand-text">
+            <div class="title">PLR</div>
+            <div class="subtitle" id="uiSubtitle">Alle Kursdateien an einem Ort</div>
+          </div>
+        </div>
+
+        <label class="sort" aria-label="Sortierung">
+          <select id="sortSelect">
+            <option value="newest" selected>Neueste zuerst</option>
+            <option value="oldest">Älteste zuerst</option>
+            <option value="title_asc">Titel (A–Z)</option>
+            <option value="subject_asc">Fach (A–Z)</option>
+          </select>
+        </label>
+
+        <div class="view-toggle" role="group" aria-label="Ansicht">
+          <button class="view-btn is-active" type="button" id="viewListBtn" data-view="list" aria-label="Liste">≡</button>
+          <button class="view-btn" type="button" id="viewCardsBtn" data-view="cards" aria-label="Karten">▦</button>
+        </div>
+
+        <button class="filter-toggle" type="button" id="filterToggle" aria-label="Filter">
+          <span class="filter-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Filter">
+        <div class="sidebar-section">
+          <div class="sidebar-title" id="uiSidebarFilterTitle">Filter</div>
+          <div class="sidebar-buttons" role="group" aria-label="Filter nach Ressourcentyp">
+            <button class="filter-btn is-active" type="button" data-filter="all">
+              <span id="uiSideAll">Alle</span>
+              <span class="count" data-count="all">0</span>
+            </button>
+
+            <button class="group-toggle" type="button" id="typeGroupToggle" aria-expanded="true">
+              <span>Typ</span>
+              <span class="chev" aria-hidden="true"></span>
+            </button>
+
+            <div class="group" id="typeGroup" data-group="type">
+              <button class="filter-btn" type="button" data-filter="document">
+                <span id="uiSideDoc">Dokumente</span>
+                <span class="count" data-count="document">0</span>
+              </button>
+              <button class="filter-btn" type="button" data-filter="video">
+                <span id="uiSideVid">Videos</span>
+                <span class="count" data-count="video">0</span>
+              </button>
+              <button class="filter-btn" type="button" data-filter="audio">
+                <span id="uiSideAud">Audio</span>
+                <span class="count" data-count="audio">0</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="sidebar-overlay" id="sidebarOverlay" hidden></div>
+
+      <main class="content">
+        <div class="container">
+          <div class="view" id="viewHome" data-view="home">
+            <section class="hero" aria-label="Dashboard">
+              <div>
+                <h1 class="hero-title" id="uiHeroTitle">Ressourcen</h1>
+                <p class="hero-subtitle" id="uiHeroSubtitle">Dokumente, Videos und Audio schnell finden und herunterladen.</p>
+
+                <label class="search hero-search" for="searchInput">
+                  <input id="searchInput" type="search" placeholder="Ressourcen suchen…" autocomplete="off" />
+                </label>
+              </div>
+            </section>
+
+            <section class="stats" aria-label="Übersicht">
+              <div class="stat">
+                <div class="stat-label" id="uiStatShowing">Anzeige</div>
+                <div class="stat-value" id="statShowing">0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label" id="uiStatTotal">Gesamt</div>
+                <div class="stat-value" id="statTotal">0</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label" id="uiStatFilter">Filter</div>
+                <div class="stat-value" id="statFilter">Alle</div>
+              </div>
+            </section>
+
+            <section class="grid" aria-label="Ressourcen">
+              <div id="resourcesGrid" class="grid-inner"></div>
+            </section>
+
+            <section class="empty" id="emptyState" hidden>
+              <h2 class="empty-title" id="uiEmptyTitle">Keine Ressourcen gefunden</h2>
+              <p class="empty-text" id="uiEmptyText">Wechsle den Filter oder passe die Suche an.</p>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal" id="addModal" hidden>
+      <div class="modal-overlay" id="addModalOverlay"></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Ressource hinzufügen">
+        <div class="modal-header">
+          <div class="modal-title" id="uiAddTitle">Ressource hinzufügen</div>
+          <button class="modal-close" type="button" id="addModalClose" aria-label="Schließen">×</button>
+        </div>
+
+        <form class="form" id="addForm">
+          <label class="field">
+            <span class="field-label" id="uiAddLabelTitle">Titel</span>
+            <input name="title" required />
+          </label>
+
+          <label class="field">
+            <span class="field-label" id="uiAddLabelSubject">Fach</span>
+            <input name="subject" required />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label" id="uiAddLabelType">Typ</span>
+              <select name="type" required>
+                <option value="document" id="uiAddTypeDoc">Dokument</option>
+                <option value="video" id="uiAddTypeVid">Video</option>
+                <option value="audio" id="uiAddTypeAud">Audio</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field-label" id="uiAddLabelFormat">Format</span>
+              <input name="format" placeholder="pdf / mp4 / mp3" required />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field-label" id="uiAddLabelFile">Datei</span>
+            <input name="file" type="file" required />
+          </label>
+
+          <label class="field">
+            <span class="field-label" id="uiAddLabelCode">Code (für Upload)</span>
+            <input name="adminCode" type="password" autocomplete="current-password" required />
+          </label>
+
+          <div class="form-status" id="addFormStatus" role="status" aria-live="polite"></div>
+
+          <div class="form-actions">
+            <button class="secondary" type="button" id="addFormCancel"><span id="uiAddCancel">Abbrechen</span></button>
+            <button class="primary" type="submit"><span id="uiAddSave">Speichern</span></button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal" id="settingsModal" hidden>
+      <div class="modal-overlay" id="settingsModalOverlay"></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-label="Einstellungen">
+        <div class="modal-header">
+          <div class="modal-title" id="uiSettingsTitle">Einstellungen</div>
+          <button class="modal-close" type="button" id="settingsModalClose" aria-label="Schließen">×</button>
+        </div>
+
+        <form class="form" id="settingsForm">
+          <label class="field">
+            <span class="field-label" id="uiApiLabel">Backend-URL (API_BASE_URL)</span>
+            <input name="apiBaseUrl" placeholder="https://dein-backend.onrender.com" />
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label" id="uiWaLabel">WhatsApp Nummern</span>
+              <textarea name="whatsAppNumbers" id="waNumbers" rows="5" placeholder="z.B. 491234567890\n33612345678"></textarea>
+            </label>
+
+            <label class="field">
+              <span class="field-label" id="uiWaActiveLabel">Aktiver WhatsApp</span>
+              <select name="whatsAppActive" id="waActiveSelect"></select>
+            </label>
+          </div>
+
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label" id="uiLangLabel">Sprache</span>
+              <select name="lang" id="langSelect">
+                <option value="de" selected>Deutsch</option>
+                <option value="fr">Français</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field-label" id="uiThemeLabel">Thema</span>
+              <select name="theme" id="themeSelect">
+                <option value="dark" selected>Full dark</option>
+                <option value="light">Full blanc</option>
+                <option value="ard">ARD Sounds</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-status" id="settingsStatus" role="status" aria-live="polite"></div>
+
+          <div class="form-actions">
+            <button class="secondary" type="button" id="settingsCancel"><span id="uiSettingsCancel">Abbrechen</span></button>
+            <button class="primary" type="submit"><span id="uiSettingsSave">Speichern</span></button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+
+    <nav class="tabbar" aria-label="Navigation">
+      <button class="tab is-active" type="button" data-tab="home" aria-label="Home">
+        <span class="tab-ico" aria-hidden="true">⌂</span>
+        <span class="tab-label">Home</span>
+      </button>
+      <button class="tab" type="button" data-tab="search" aria-label="Search">
+        <span class="tab-ico" aria-hidden="true">🔎</span>
+        <span class="tab-label">Search</span>
+      </button>
+      <button class="tab" type="button" data-tab="library" aria-label="Library">
+        <span class="tab-ico" aria-hidden="true">▦</span>
+        <span class="tab-label">Library</span>
+      </button>
+    </nav>
+
+    <a
+      class="whatsapp-fab"
+      href="#"
+      id="whatsappFab"
+      aria-label="WhatsApp Hilfe"
+      title="WhatsApp Hilfe"
+      rel="noopener"
+    >
+      <span class="wa-icon" aria-hidden="true">WA</span>
+      <span class="wa-text">Hilfe</span>
+    </a>
+
+    <script src="script.js"></script>
+  </body>
+</html>
