@@ -51,6 +51,26 @@
 
     <div class="layout">
       <aside class="sidebar" id="sidebar" aria-label="Filter">
+        <div class="sidebar-section sidebar-only" id="sidebarControls">
+          <div class="sidebar-title" id="uiSidebarControlsTitle">Ansicht</div>
+
+          <div class="sidebar-controls">
+            <label class="sort" aria-label="Sortierung">
+              <select id="sortSelectSidebar">
+                <option value="newest" selected>Neueste zuerst</option>
+                <option value="oldest">Älteste zuerst</option>
+                <option value="title_asc">Titel (A–Z)</option>
+                <option value="subject_asc">Fach (A–Z)</option>
+              </select>
+            </label>
+
+            <div class="view-toggle" role="group" aria-label="Ansicht">
+              <button class="view-btn" type="button" id="viewListBtnSidebar" data-view="list" aria-label="Liste">≡</button>
+              <button class="view-btn" type="button" id="viewCardsBtnSidebar" data-view="cards" aria-label="Karten">▦</button>
+            </div>
+          </div>
+        </div>
+
         <div class="sidebar-section">
           <div class="sidebar-title" id="uiSidebarFilterTitle">Filter</div>
           <div class="sidebar-buttons" role="group" aria-label="Filter nach Ressourcentyp">

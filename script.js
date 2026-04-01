@@ -635,17 +635,28 @@ function renderResources({ filter, query }) {
 function initViewToggle() {
   const listBtn = document.getElementById("viewListBtn");
   const cardsBtn = document.getElementById("viewCardsBtn");
+  const listBtnSide = document.getElementById("viewListBtnSidebar");
+  const cardsBtnSide = document.getElementById("viewCardsBtnSidebar");
+
   if (!listBtn || !cardsBtn) return;
 
   function setMode(mode) {
     UI_STATE.viewMode = mode === "cards" ? "cards" : "list";
     listBtn.classList.toggle("is-active", UI_STATE.viewMode === "list");
     cardsBtn.classList.toggle("is-active", UI_STATE.viewMode === "cards");
+    if (listBtnSide && cardsBtnSide) {
+      listBtnSide.classList.toggle("is-active", UI_STATE.viewMode === "list");
+      cardsBtnSide.classList.toggle("is-active", UI_STATE.viewMode === "cards");
+    }
     renderResources({ filter: UI_STATE.filter, query: UI_STATE.query });
   }
 
   listBtn.addEventListener("click", () => setMode("list"));
   cardsBtn.addEventListener("click", () => setMode("cards"));
+  if (listBtnSide && cardsBtnSide) {
+    listBtnSide.addEventListener("click", () => setMode("list"));
+    cardsBtnSide.addEventListener("click", () => setMode("cards"));
+  }
 
   setMode(UI_STATE.viewMode);
 }
@@ -688,17 +699,28 @@ function initFilters() {
 
 function initSort() {
   const select = document.getElementById("sortSelect");
+  const selectSide = document.getElementById("sortSelectSidebar");
   if (!select) return;
 
   UI_STATE.sort = String(select.value || UI_STATE.sort || "newest");
 
-  select.addEventListener("change", () => {
-    UI_STATE.sort = String(select.value || "newest");
+  if (selectSide) {
+    selectSide.value = UI_STATE.sort;
+  }
+
+  function setSort(value) {
+    UI_STATE.sort = String(value || "newest");
+    if (select) select.value = UI_STATE.sort;
+    if (selectSide) selectSide.value = UI_STATE.sort;
     renderResources({ filter: UI_STATE.filter, query: UI_STATE.query });
 
-    const label = select.options[select.selectedIndex]?.textContent || "";
+    const activeSelect = selectSide && document.activeElement === selectSide ? selectSide : select;
+    const label = activeSelect?.options?.[activeSelect.selectedIndex]?.textContent || "";
     if (label) showToast(`Sortierung: ${label}`, "success");
-  });
+  }
+
+  select.addEventListener("change", () => setSort(select.value));
+  if (selectSide) selectSide.addEventListener("change", () => setSort(selectSide.value));
 }
 
 function initTypeGroup() {
