@@ -1113,6 +1113,10 @@ body {
     display: none;
   }
 
+  .title {
+    font-size: 15px;
+  }
+
   .add-toggle span {
     display: none;
   }
@@ -1167,6 +1171,23 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .card-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .download-btn,
+  .danger-btn {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+  }
+
+  .format-pill {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+
   .card-inner {
     padding: 14px;
     gap: 10px;
@@ -1175,6 +1196,18 @@ body {
   .list-item {
     padding: 10px;
     gap: 10px;
+  }
+
+  .list-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .list-open,
+  .list-actions .danger-btn {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
   }
 
   .list-title {
@@ -1225,6 +1258,9 @@ body {
     z-index: 18;
     background: rgba(10, 10, 13, 0.95);
     border-right: 1px solid rgba(255, 255, 255, 0.10);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(18px + 84px + env(safe-area-inset-bottom));
   }
 
   .sidebar.is-open {

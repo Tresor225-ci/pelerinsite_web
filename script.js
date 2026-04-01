@@ -995,6 +995,13 @@ function initSettingsModal() {
   const contributorCodeInput = form.querySelector('input[name="contributorCode"]');
   const contributorVerifyBtn = document.getElementById("contributorVerifyBtn");
 
+  function refreshResourcesUi() {
+    const q = (document.getElementById("searchInput")?.value || "").toString();
+    UI_STATE.query = q;
+    renderCounts({ query: UI_STATE.query });
+    renderResources({ filter: UI_STATE.filter, query: UI_STATE.query });
+  }
+
   function setStatus(message, variant) {
     if (!statusNode) return;
     statusNode.textContent = String(message || "");
@@ -1010,6 +1017,8 @@ function initSettingsModal() {
     if (waSection) waSection.hidden = !isEnabled;
     if (waNumbers) waNumbers.disabled = !isEnabled;
     if (waActiveSelect) waActiveSelect.disabled = !isEnabled;
+
+    refreshResourcesUi();
   }
 
   async function verifyContributorCode() {
@@ -1069,6 +1078,8 @@ function initSettingsModal() {
 
     const isContributor = localStorage.getItem("plr_is_contributor") === "1";
     setContributorEnabled(isContributor);
+
+    refreshResourcesUi();
 
     const numbers = getStoredWhatsAppNumbers();
     const active = getActiveWhatsAppNumber();
