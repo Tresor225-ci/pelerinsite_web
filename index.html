@@ -15,18 +15,28 @@
   <body>
     <header class="topbar">
       <div class="container topbar-inner">
-        <button class="menu-toggle" type="button" id="menuToggle" aria-label="Einstellungen">
-          <span class="menu-bars" aria-hidden="true"></span>
-        </button>
-
-        <button class="add-toggle" type="button" id="addToggle" aria-label="Ressource hinzufügen"><span id="uiAddToggle">+ Hinzufügen</span></button>
-
         <div class="brand">
           <div class="brand-mark" aria-hidden="true">PLR</div>
           <div class="brand-text">
             <div class="title">PLR</div>
             <div class="subtitle" id="uiSubtitle">Alle Kursdateien an einem Ort</div>
           </div>
+        </div>
+
+        <label class="search top-search" for="searchInput" aria-label="Suche">
+          <input id="searchInput" type="search" placeholder="Ressourcen suchen…" autocomplete="off" />
+        </label>
+
+        <div class="top-actions">
+          <button class="filter-toggle" type="button" id="filterToggle" aria-label="Filter">
+            <span class="filter-icon" aria-hidden="true"></span>
+          </button>
+
+          <button class="add-toggle" type="button" id="addToggle" aria-label="Ressource hinzufügen"><span id="uiAddToggle">+ Hinzufügen</span></button>
+
+          <button class="menu-toggle" type="button" id="menuToggle" aria-label="Einstellungen">
+            <span class="menu-bars" aria-hidden="true"></span>
+          </button>
         </div>
 
         <label class="sort" aria-label="Sortierung">
@@ -43,9 +53,6 @@
           <button class="view-btn" type="button" id="viewCardsBtn" data-view="cards" aria-label="Karten">▦</button>
         </div>
 
-        <button class="filter-toggle" type="button" id="filterToggle" aria-label="Filter">
-          <span class="filter-icon" aria-hidden="true"></span>
-        </button>
       </div>
     </header>
 
@@ -107,14 +114,19 @@
       <main class="content">
         <div class="container">
           <div class="view" id="viewHome" data-view="home">
+            <section class="chips" aria-label="Filter">
+              <div class="chips-row" role="group" aria-label="Filter nach Typ">
+                <button class="filter-btn filter-chip is-active" type="button" data-filter="all"><span id="uiChipAll">Alle</span></button>
+                <button class="filter-btn filter-chip" type="button" data-filter="document"><span id="uiChipDoc">Dokumente</span></button>
+                <button class="filter-btn filter-chip" type="button" data-filter="video"><span id="uiChipVid">Videos</span></button>
+                <button class="filter-btn filter-chip" type="button" data-filter="audio"><span id="uiChipAud">Audio</span></button>
+              </div>
+            </section>
+
             <section class="hero" aria-label="Dashboard">
               <div>
                 <h1 class="hero-title" id="uiHeroTitle">Ressourcen</h1>
                 <p class="hero-subtitle" id="uiHeroSubtitle">Dokumente, Videos und Audio schnell finden und herunterladen.</p>
-
-                <label class="search hero-search" for="searchInput">
-                  <input id="searchInput" type="search" placeholder="Ressourcen suchen…" autocomplete="off" />
-                </label>
               </div>
             </section>
 
@@ -262,10 +274,6 @@
       <button class="tab is-active" type="button" data-tab="home" aria-label="Home">
         <span class="tab-ico" aria-hidden="true">⌂</span>
         <span class="tab-label">Home</span>
-      </button>
-      <button class="tab" type="button" data-tab="search" aria-label="Search">
-        <span class="tab-ico" aria-hidden="true">🔎</span>
-        <span class="tab-label">Search</span>
       </button>
       <button class="tab" type="button" data-tab="library" aria-label="Library">
         <span class="tab-ico" aria-hidden="true">▦</span>

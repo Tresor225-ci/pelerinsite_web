@@ -107,16 +107,6 @@ function setActiveTab(tab) {
     btn.classList.toggle("is-active", String(btn.dataset.tab) === ttab);
   }
 
-  const searchInput = document.getElementById("searchInput");
-  if (ttab === "search") {
-    window.setTimeout(() => {
-      try {
-        searchInput?.focus();
-      } catch {
-        // ignore
-      }
-    }, 0);
-  }
 }
 
 function initTabs() {
@@ -341,6 +331,11 @@ function applyLanguage() {
   setText("uiSideDoc", t("quickDoc"));
   setText("uiSideVid", t("quickVid"));
   setText("uiSideAud", t("quickAud"));
+
+  setText("uiChipAll", t("quickAll"));
+  setText("uiChipDoc", t("quickDoc"));
+  setText("uiChipVid", t("quickVid"));
+  setText("uiChipAud", t("quickAud"));
 
   setText("uiSettingsTitle", t("settingsTitle"));
   setText("uiLangLabel", t("langLabel"));
