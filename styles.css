@@ -525,7 +525,7 @@ body {
   padding: 12px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.04);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03));
   box-shadow: var(--shadow);
  }
 
@@ -575,8 +575,8 @@ body {
 .card {
   position: relative;
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.04));
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.035));
+  border: 1px solid rgba(255, 255, 255, 0.11);
   box-shadow: var(--shadow);
   overflow: hidden;
   transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
@@ -712,15 +712,15 @@ body {
   gap: 8px;
   padding: 10px;
   border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(15, 18, 26, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(10, 12, 18, 0.72);
   backdrop-filter: blur(12px);
   box-shadow: var(--shadow);
  }
 
  .tab {
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--muted);
   border-radius: 18px;
   padding: 10px 8px;
@@ -729,12 +729,18 @@ body {
   gap: 6px;
   justify-items: center;
   font-weight: 900;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+ }
+
+ .tab:active {
+  transform: translateY(1px);
  }
 
  .tab.is-active {
   color: var(--text);
   border-color: rgba(45, 108, 255, 0.55);
-  box-shadow: 0 0 0 4px var(--ring);
+  background: linear-gradient(135deg, rgba(45, 108, 255, 0.28), rgba(125, 76, 255, 0.16));
+  box-shadow: 0 0 0 4px var(--ring), 0 10px 24px rgba(45, 108, 255, 0.12);
  }
 
  .tab-ico {
@@ -970,6 +976,38 @@ body {
 }
 
 @media (max-width: 620px) {
+  .container {
+    width: calc(100% - 24px);
+  }
+
+  .topbar-inner {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 0;
+  }
+
+  .brand {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .subtitle {
+    display: none;
+  }
+
+  .sort {
+    width: 100%;
+    order: 10;
+  }
+
+  .sort select {
+    width: 100%;
+  }
+
+  .view-toggle {
+    order: 11;
+  }
+
   .stats {
     grid-template-columns: 1fr;
   }
@@ -980,7 +1018,13 @@ body {
 
   .whatsapp-fab {
     right: 12px;
-    bottom: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .tabbar {
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    width: calc(100% - 16px);
+    padding: 10px;
   }
 
   .layout {
