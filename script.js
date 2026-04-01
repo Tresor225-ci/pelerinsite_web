@@ -542,6 +542,13 @@ function buildCardHtml(resource) {
   const downloadUrl = escapeHtml(resource.downloadUrl || resource.url || "#");
   const dotColor = subjectDotColor(resource.subject || "General");
 
+  const canDelete = localStorage.getItem("plr_is_contributor") === "1";
+  const deleteBtn = canDelete
+    ? `<button class="danger-btn" type="button" data-action="delete" data-id="${escapeHtml(String(resource.id || ""))}">${escapeHtml(
+        t("deleteLabel")
+      )}</button>`
+    : "";
+
   const preview = isPlayable(resource) ? buildPreviewHtml(resource) : "";
 
   return `
@@ -568,6 +575,7 @@ function buildCardHtml(resource) {
 
         <div class="card-actions">
           <a class="download-btn" href="${downloadUrl}" target="_blank" rel="noopener">${escapeHtml(UI_TEXT.download)}</a>
+          ${deleteBtn}
           <span class="format-pill">${format.toUpperCase() || "FILE"}</span>
         </div>
       </div>
@@ -583,6 +591,13 @@ function buildListItemHtml(resource) {
   const url = escapeHtml(resource.url || "#");
   const downloadUrl = escapeHtml(resource.downloadUrl || resource.url || "#");
 
+  const canDelete = localStorage.getItem("plr_is_contributor") === "1";
+  const deleteBtn = canDelete
+    ? `<button class="danger-btn" type="button" data-action="delete" data-id="${escapeHtml(String(resource.id || ""))}">${escapeHtml(
+        t("deleteLabel")
+      )}</button>`
+    : "";
+
   return `
     <article class="list-item" data-type="${escapeHtml(normalizeType(resource.type))}">
       <div class="file-icon" title="${escapeHtml(icon.label)}">${escapeHtml(icon.glyph)}</div>
@@ -597,6 +612,7 @@ function buildListItemHtml(resource) {
       <div class="list-actions">
         <a class="list-open" href="${url}" target="_blank" rel="noopener">${escapeHtml(t("openLabel"))}</a>
         <a class="list-open" href="${downloadUrl}" target="_blank" rel="noopener">${escapeHtml(UI_TEXT.download)}</a>
+        ${deleteBtn}
       </div>
     </article>
   `;
