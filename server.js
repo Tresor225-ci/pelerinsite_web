@@ -10,6 +10,7 @@ const {
   SUPABASE_SERVICE_ROLE_KEY,
   SUPABASE_BUCKET = "resources",
   ADMIN_CODE,
+  ADMIN_CODES,
   PUBLIC_SITE_ORIGIN = "*",
   MAX_UPLOAD_MB = "200",
 } = process.env;
@@ -18,8 +19,17 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
 }
 
-if (!ADMIN_CODE) {
-  throw new Error("Missing ADMIN_CODE");
+const allowedAdminCodes = String(ADMIN_CODES || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+if (ADMIN_CODE && !allowedAdminCodes.includes(ADMIN_CODE)) {
+  allowedAdminCodes.push(ADMIN_CODE);
+}
+
+if (allowedAdminCodes.length === 0) {
+  throw new Error("Missing ADMIN_CODE (or ADMIN_CODES)");
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -60,7 +70,7 @@ const upload = multer({
 
 function requireAdminCode(req, res, next) {
   const code = req.header("x-admin-code") || req.body?.adminCode;
-  if (!code || code !== ADMIN_CODE) {
+  if (!code || !allowedAdminCodes.includes(String(code))) {
     return res.status(401).json({ error: "unauthorized" });
   }
   return next();

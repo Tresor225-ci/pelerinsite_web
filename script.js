@@ -10,33 +10,10 @@ const resources = [
   //   url: "https://...",
   //   downloadUrl: "https://..." // optional (if different from url)
   // }
-  {
-    id: "demo-math-pdf",
-    title: "Math - Course Outline",
-    type: "document",
-    format: "pdf",
-    subject: "Math",
-    url: "https://example.com/file.pdf",
-  },
-  {
-    id: "demo-cs-video",
-    title: "Computer Science - Lecture 1",
-    type: "video",
-    format: "mp4",
-    subject: "Computer Science",
-    url: "https://www.w3schools.com/html/mov_bbb.mp4",
-  },
-  {
-    id: "demo-physics-audio",
-    title: "Physics - Audio Summary",
-    type: "audio",
-    format: "mp3",
-    subject: "Physics",
-    url: "https://www.w3schools.com/html/horse.mp3",
-  },
 ];
 
-const API_BASE_URL = localStorage.getItem("plr_api_base_url") || "";
+const DEFAULT_API_BASE_URL = "https://pelerinsite-web.onrender.com";
+const API_BASE_URL = DEFAULT_API_BASE_URL;
 
 const UI_PREFS = {
   lang: localStorage.getItem("plr_lang") || "de",
@@ -942,7 +919,10 @@ function initSettingsModal() {
   }
 
   function open() {
-    if (apiInput) apiInput.value = localStorage.getItem("plr_api_base_url") || "";
+    if (apiInput) {
+      apiInput.value = DEFAULT_API_BASE_URL;
+      apiInput.readOnly = true;
+    }
 
     const numbers = getStoredWhatsAppNumbers();
     const active = getActiveWhatsAppNumber();
@@ -1013,7 +993,6 @@ function initSettingsModal() {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const apiBaseUrl = String(apiInput?.value || "").trim();
     const numbers = parseWhatsAppNumbers(waNumbers?.value || "");
     const activeRaw = String(waActiveSelect?.value || "").trim();
     const active = activeRaw && numbers.includes(activeRaw) ? activeRaw : numbers[0] || "";
@@ -1021,16 +1000,6 @@ function initSettingsModal() {
     const rawTheme = String(themeSelect?.value || "dark").trim().toLowerCase();
     const migrated = rawTheme === "blue" ? "ard" : rawTheme;
     const theme = migrated === "light" ? "light" : migrated === "ard" ? "ard" : "dark";
-
-    const prevApi = localStorage.getItem("plr_api_base_url") || "";
-
-    if (apiBaseUrl && !/^https?:\/\//i.test(apiBaseUrl)) {
-      setStatus("Backend-URL muss mit http(s):// beginnen.", "error");
-      return;
-    }
-
-    if (apiBaseUrl) localStorage.setItem("plr_api_base_url", apiBaseUrl);
-    else localStorage.removeItem("plr_api_base_url");
 
     localStorage.setItem("plr_whatsapp_numbers", JSON.stringify(numbers));
     if (active) localStorage.setItem("plr_whatsapp_active", active);
@@ -1052,12 +1021,6 @@ function initSettingsModal() {
 
     showToast(t("msgSettingsSaved"), "success");
     setStatus(t("msgSaved"), "success");
-
-    if (apiBaseUrl !== prevApi) {
-      setStatus(t("msgBackendChangedReload"), "success");
-      window.setTimeout(() => window.location.reload(), 600);
-      return;
-    }
 
     window.setTimeout(() => {
       modal.hidden = true;
