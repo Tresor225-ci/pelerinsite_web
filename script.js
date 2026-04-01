@@ -842,7 +842,7 @@ function initAddModal() {
   function setSubmitting(isSubmitting) {
     if (submitBtn) {
       submitBtn.disabled = isSubmitting;
-      submitBtn.textContent = isSubmitting ? "Upload läuft…" : "Speichern";
+      submitBtn.textContent = isSubmitting ? t("msgUploadInProgress") : t("addSave");
     }
     if (cancelBtn) cancelBtn.disabled = isSubmitting;
     if (closeBtn) closeBtn.disabled = isSubmitting;
@@ -900,12 +900,23 @@ function initAddModal() {
     const fd = new FormData(form);
     const title = String(fd.get("title") || "").trim();
     const subject = String(fd.get("subject") || "").trim();
-    const type = normalizeType(fd.get("type"));
-    const format = String(fd.get("format") || "").trim().toLowerCase();
-    const adminCode = String(fd.get("adminCode") || "").trim();
-    const file = fd.get("file");
 
-    if (!title || !subject || !type || !format || !adminCode || !(file instanceof File) || !file.size) {
+    const file = fd.get("file");
+    const fileObj = file instanceof File ? file : null;
+
+    const rawType = normalizeType(fd.get("type"));
+    const inferredType = fileObj ? inferTypeFromFile(fileObj) : "";
+    const type = rawType || inferredType;
+
+    const rawFormat = String(fd.get("format") || "").trim().toLowerCase();
+    const inferredFormat = fileObj ? inferFormatFromFilename(fileObj.name) : "";
+    const format = rawFormat || inferredFormat;
+
+    const rawAdminCode = String(fd.get("adminCode") || "").trim();
+    const storedAdminCode = String(sessionStorage.getItem("plr_admin_code") || "").trim();
+    const adminCode = rawAdminCode || storedAdminCode;
+
+    if (!title || !subject || !type || !format || !adminCode || !fileObj || !fileObj.size) {
       setStatus(t("msgFillAllFields"), "error");
       return;
     }
@@ -918,7 +929,7 @@ function initAddModal() {
     body.set("subject", subject);
     body.set("type", type);
     body.set("format", format);
-    body.set("file", file);
+    body.set("file", fileObj);
 
     const url = `${API_BASE_URL.replace(/\/$/, "")}/api/upload`;
 
@@ -932,7 +943,9 @@ function initAddModal() {
       .then(async (resp) => {
         if (!resp.ok) {
           const err = await resp.json().catch(() => ({}));
-          throw new Error(err.error || "upload_failed");
+          const code = String(err?.error || "").trim();
+          const status = Number(resp.status) || 0;
+          throw new Error(code || (status ? `http_${status}` : "upload_failed"));
         }
         return resp.json();
       })
@@ -955,7 +968,17 @@ function initAddModal() {
         initWhatsAppFab();
       })
       .catch((err) => {
-        const msg = err?.message === "unauthorized" ? t("msgWrongCode") : t("msgUploadFailed");
+        const code = String(err?.message || "").trim();
+        const msg =
+          code === "unauthorized"
+            ? t("msgWrongCode")
+            : code === "file_too_large" || code === "http_413"
+              ? "Fichier trop volumineux."
+              : code === "missing_fields"
+                ? t("msgFillAllFields")
+                : code === "missing_file"
+                  ? t("msgFillAllFields")
+                  : `${t("msgUploadFailed")} (${code || "unknown"})`;
         showToast(msg, "error");
         setStatus(msg, "error");
       })
