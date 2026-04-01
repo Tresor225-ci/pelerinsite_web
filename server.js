@@ -35,6 +35,18 @@ app.use(
   })
 );
 
+app.get("/", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "plr-backend",
+    endpoints: {
+      health: "/health",
+      resources: "/api/resources",
+      upload: "/api/upload",
+    },
+  });
+});
+
 app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
