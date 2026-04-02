@@ -19,9 +19,7 @@ function normalizeAdminCode(value) {
   return String(value || "").trim();
 }
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-}
+const hasSupabaseConfig = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 
 const allowedAdminCodes = String(ADMIN_CODES || "")
   .split(",")
@@ -33,15 +31,18 @@ if (normalizedSingleAdminCode && !allowedAdminCodes.includes(normalizedSingleAdm
   allowedAdminCodes.push(normalizedSingleAdminCode);
 }
 
-if (allowedAdminCodes.length === 0) {
-  throw new Error("Missing ADMIN_CODE (or ADMIN_CODES)");
-}
+const hasAdminCodes = allowedAdminCodes.length !== 0;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { persistSession: false },
-});
+const supabase = hasSupabaseConfig
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    })
+  : null;
 
 const app = express();
+
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
@@ -54,6 +55,10 @@ app.get("/", (_req, res) => {
   res.json({
     ok: true,
     service: "plr-backend",
+    configured: {
+      supabase: hasSupabaseConfig,
+      adminCodes: hasAdminCodes,
+    },
     endpoints: {
       health: "/health",
       resources: "/api/resources",
@@ -78,10 +83,18 @@ const upload = multer({
 });
 
 function requireAdminCode(req, res, next) {
+  if (!hasAdminCodes) {
+    return res.status(503).json({ error: "missing_admin_code" });
+  }
   const code = normalizeAdminCode(req.header("x-admin-code") || req.body?.adminCode);
   if (!code || !allowedAdminCodes.includes(code)) {
     return res.status(401).json({ error: "unauthorized" });
   }
+  return next();
+}
+
+function requireSupabase(_req, res, next) {
+  if (!supabase) return res.status(503).json({ error: "missing_supabase_config" });
   return next();
 }
 
@@ -132,7 +145,7 @@ function filenameFromPath(path) {
   return parts[parts.length - 1] || "file";
 }
 
-app.get("/api/resources", async (_req, res) => {
+app.get("/api/resources", requireSupabase, async (_req, res) => {
   const { data, error } = await supabase
     .from("resources")
     .select("id,title,subject,type,format,url,download_url,created_at")
@@ -154,7 +167,7 @@ app.get("/api/resources", async (_req, res) => {
   return res.json({ resources: mapped });
 });
 
-app.get("/api/resources/:id/open", async (req, res) => {
+app.get("/api/resources/:id/open", requireSupabase, async (req, res) => {
   try {
     const id = String(req.params?.id || "").trim();
     if (!id) return res.status(400).send("missing_id");
@@ -190,7 +203,7 @@ app.get("/api/resources/:id/open", async (req, res) => {
   }
 });
 
-app.delete("/api/resources/:id", requireAdminCode, async (req, res) => {
+app.delete("/api/resources/:id", requireSupabase, requireAdminCode, async (req, res) => {
   try {
     const id = String(req.params?.id || "").trim();
     if (!id) return res.status(400).json({ error: "missing_id" });
@@ -218,7 +231,7 @@ app.delete("/api/resources/:id", requireAdminCode, async (req, res) => {
   }
 });
 
-app.post("/api/upload", upload.single("file"), requireAdminCode, async (req, res) => {
+app.post("/api/upload", upload.single("file"), requireSupabase, requireAdminCode, async (req, res) => {
   try {
     const title = String(req.body?.title || "").trim();
     const subject = String(req.body?.subject || "").trim();

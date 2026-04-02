@@ -66,6 +66,12 @@ function getActiveWhatsAppNumber() {
 let remoteResources = [];
 let hasRemoteLoaded = false;
 
+function isRemoteResourceId(id) {
+  const needle = String(id || "").trim();
+  if (!needle) return false;
+  return remoteResources.some((r) => String(r?.id || "") === needle);
+}
+
 const UI_STATE = {
   filter: "all",
   query: "",
@@ -126,7 +132,18 @@ function initTabs() {
 }
 
 function getAllResources() {
-  if (API_BASE_URL && hasRemoteLoaded) return remoteResources;
+  if (API_BASE_URL && hasRemoteLoaded) {
+    const merged = [...remoteResources, ...resources];
+    const seen = new Set();
+    return merged.filter((r) => {
+      const id = String(r?.id || "").trim();
+      if (!id) return true;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }
+
   return resources;
 }
 
@@ -141,6 +158,7 @@ async function loadRemoteResources() {
     hasRemoteLoaded = true;
   } catch {
     hasRemoteLoaded = false;
+    remoteResources = [];
   }
 }
 
@@ -157,6 +175,11 @@ function initDeleteActions() {
 
     const id = String(target.getAttribute("data-id") || "").trim();
     if (!id) return;
+
+    if (!API_BASE_URL || !hasRemoteLoaded || !isRemoteResourceId(id)) {
+      showToast(t("msgDeleteFailed"), "error");
+      return;
+    }
 
     const ok = window.confirm(t("msgDeleteConfirm"));
     if (!ok) return;
@@ -227,9 +250,10 @@ function initReader() {
     const type = normalizeType(resource?.type || "");
     const format = String(resource?.format || "").trim().toLowerCase();
 
-    const openUrl = id
-      ? `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(id)}/open`
-      : String(resource?.url || "#");
+    const openUrl =
+      API_BASE_URL && hasRemoteLoaded && id && isRemoteResourceId(id)
+        ? `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(id)}/open`
+        : String(resource?.url || "#");
 
     lastUrl = openUrl;
     if (titleNode) titleNode.textContent = String(resource?.title || "Reader");
