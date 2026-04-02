@@ -619,6 +619,8 @@ body {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
  }
 
  .list-meta {
@@ -728,6 +730,8 @@ body {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .file-meta {
@@ -1232,6 +1236,11 @@ body {
     padding: 10px;
     gap: 10px;
     align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .list-main {
+    flex-basis: calc(100% - 52px);
   }
 
   .list-actions {
@@ -1239,6 +1248,8 @@ body {
     justify-content: flex-end;
     gap: 8px;
     margin-left: auto;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .list-open,

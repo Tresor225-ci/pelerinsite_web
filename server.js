@@ -111,6 +111,27 @@ function safePathSegment(value) {
     .slice(0, 60);
 }
 
+function guessMimeFromExt(path) {
+  const p = String(path || "").toLowerCase();
+  if (p.endsWith(".pdf")) return "application/pdf";
+  if (p.endsWith(".mp4")) return "video/mp4";
+  if (p.endsWith(".webm")) return "video/webm";
+  if (p.endsWith(".mp3")) return "audio/mpeg";
+  if (p.endsWith(".wav")) return "audio/wav";
+  if (p.endsWith(".m4a")) return "audio/mp4";
+  if (p.endsWith(".png")) return "image/png";
+  if (p.endsWith(".jpg") || p.endsWith(".jpeg")) return "image/jpeg";
+  if (p.endsWith(".gif")) return "image/gif";
+  if (p.endsWith(".webp")) return "image/webp";
+  return "application/octet-stream";
+}
+
+function filenameFromPath(path) {
+  const raw = String(path || "");
+  const parts = raw.split("/").filter(Boolean);
+  return parts[parts.length - 1] || "file";
+}
+
 app.get("/api/resources", async (_req, res) => {
   const { data, error } = await supabase
     .from("resources")
@@ -131,6 +152,38 @@ app.get("/api/resources", async (_req, res) => {
   }));
 
   return res.json({ resources: mapped });
+});
+
+app.get("/api/resources/:id/open", async (req, res) => {
+  try {
+    const id = String(req.params?.id || "").trim();
+    if (!id) return res.status(400).send("missing_id");
+
+    const { data: row, error: readErr } = await supabase
+      .from("resources")
+      .select("id,storage_path,title,format")
+      .eq("id", id)
+      .single();
+
+    if (readErr) return res.status(404).send("not_found");
+
+    const storagePath = String(row?.storage_path || "").trim();
+    if (!storagePath) return res.status(404).send("not_found");
+
+    const { data: blob, error: dlErr } = await supabase.storage.from(SUPABASE_BUCKET).download(storagePath);
+    if (dlErr || !blob) return res.status(500).send("download_failed");
+
+    const filename = filenameFromPath(storagePath);
+    const mime = blob.type || guessMimeFromExt(storagePath);
+
+    res.setHeader("Content-Type", mime);
+    res.setHeader("Content-Disposition", `inline; filename=\"${filename.replace(/\"/g, "")}\"`);
+
+    const buf = Buffer.from(await blob.arrayBuffer());
+    return res.status(200).send(buf);
+  } catch (e) {
+    return res.status(500).send(e?.message || "server_error");
+  }
 });
 
 app.delete("/api/resources/:id", requireAdminCode, async (req, res) => {

@@ -545,7 +545,10 @@ function buildCardHtml(resource) {
   const title = escapeHtml(resource.title || "Untitled");
   const subject = escapeHtml(resource.subject || "General");
   const format = escapeHtml(String(resource.format || ""));
-  const url = escapeHtml(resource.url || "#");
+  const openUrlRaw = resource?.id
+    ? `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(String(resource.id))}/open`
+    : resource.url || "#";
+  const url = escapeHtml(openUrlRaw);
   const downloadUrl = escapeHtml(resource.downloadUrl || resource.url || "#");
   const dotColor = subjectDotColor(resource.subject || "General");
 
@@ -596,7 +599,10 @@ function buildListItemHtml(resource) {
   const title = escapeHtml(resource.title || "Untitled");
   const subject = escapeHtml(resource.subject || "General");
   const format = escapeHtml(String(resource.format || ""));
-  const url = escapeHtml(resource.url || "#");
+  const openUrlRaw = resource?.id
+    ? `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(String(resource.id))}/open`
+    : resource.url || "#";
+  const url = escapeHtml(openUrlRaw);
   const downloadUrl = escapeHtml(resource.downloadUrl || resource.url || "#");
 
   const canDelete = localStorage.getItem("plr_is_contributor") === "1";
