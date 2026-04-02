@@ -280,6 +280,23 @@
       </div>
     </div>
 
+    <div class="modal" id="readerModal" hidden>
+      <div class="modal-overlay" id="readerModalOverlay"></div>
+      <div class="modal-panel reader-panel" role="dialog" aria-modal="true" aria-label="Reader">
+        <div class="modal-header">
+          <div class="modal-title" id="readerTitle">Reader</div>
+          <button class="modal-close" type="button" id="readerModalClose" aria-label="Schließen">×</button>
+        </div>
+
+        <div class="reader-body" id="readerBody"></div>
+
+        <div class="form-actions">
+          <button class="secondary" type="button" id="readerOpenNewTab">Ouvrir dans un nouvel onglet</button>
+          <button class="primary" type="button" id="readerClose">Fermer</button>
+        </div>
+      </div>
+    </div>
+
     <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
     <nav class="tabbar" aria-label="Navigation">

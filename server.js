@@ -161,14 +161,18 @@ app.get("/api/resources/:id/open", async (req, res) => {
 
     const { data: row, error: readErr } = await supabase
       .from("resources")
-      .select("id,storage_path,title,format")
+      .select("id,storage_path,url")
       .eq("id", id)
       .single();
 
     if (readErr) return res.status(404).send("not_found");
 
     const storagePath = String(row?.storage_path || "").trim();
-    if (!storagePath) return res.status(404).send("not_found");
+    if (!storagePath) {
+      const fallbackUrl = String(row?.url || "").trim();
+      if (fallbackUrl) return res.redirect(302, fallbackUrl);
+      return res.status(404).send("not_found");
+    }
 
     const { data: blob, error: dlErr } = await supabase.storage.from(SUPABASE_BUCKET).download(storagePath);
     if (dlErr || !blob) return res.status(500).send("download_failed");

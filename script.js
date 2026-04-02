@@ -202,6 +202,85 @@ function initDeleteActions() {
   });
 }
 
+function initReader() {
+  const grid = document.getElementById("resourcesGrid");
+  const modal = document.getElementById("readerModal");
+  const overlay = document.getElementById("readerModalOverlay");
+  const closeBtn = document.getElementById("readerModalClose");
+  const closeBtn2 = document.getElementById("readerClose");
+  const openNewTabBtn = document.getElementById("readerOpenNewTab");
+  const titleNode = document.getElementById("readerTitle");
+  const bodyNode = document.getElementById("readerBody");
+
+  if (!grid || !modal || !overlay || !closeBtn || !closeBtn2 || !openNewTabBtn || !bodyNode) return;
+
+  let lastUrl = "";
+
+  function close() {
+    modal.hidden = true;
+    bodyNode.innerHTML = "";
+    lastUrl = "";
+  }
+
+  function openWithResource(resource) {
+    const id = String(resource?.id || "").trim();
+    const type = normalizeType(resource?.type || "");
+    const format = String(resource?.format || "").trim().toLowerCase();
+
+    const openUrl = id
+      ? `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(id)}/open`
+      : String(resource?.url || "#");
+
+    lastUrl = openUrl;
+    if (titleNode) titleNode.textContent = String(resource?.title || "Reader");
+
+    const safeUrl = escapeHtml(openUrl);
+
+    let html = "";
+    if (type === "video") {
+      html = `<video controls preload="metadata" src="${safeUrl}"></video>`;
+    } else if (type === "audio") {
+      html = `<audio controls preload="metadata" src="${safeUrl}"></audio>`;
+    } else if (type === "image") {
+      html = `<img src="${safeUrl}" alt="${escapeHtml(String(resource?.title || "image"))}" />`;
+    } else if (format === "pdf") {
+      html = `<iframe src="${safeUrl}" title="${escapeHtml(String(resource?.title || "pdf"))}"></iframe>`;
+    } else {
+      html = `<iframe src="${safeUrl}" title="${escapeHtml(String(resource?.title || "file"))}"></iframe>`;
+    }
+
+    bodyNode.innerHTML = html;
+    modal.hidden = false;
+  }
+
+  grid.addEventListener("click", (e) => {
+    const link = e.target instanceof Element ? e.target.closest("[data-action=open]") : null;
+    if (!link) return;
+    e.preventDefault();
+
+    const id = String(link.getAttribute("data-id") || "").trim();
+    if (!id) return;
+
+    const resource = getAllResources().find((r) => String(r.id) === id);
+    if (!resource) return;
+
+    openWithResource(resource);
+  });
+
+  openNewTabBtn.addEventListener("click", () => {
+    if (!lastUrl) return;
+    window.open(lastUrl, "_blank", "noopener");
+  });
+
+  overlay.addEventListener("click", close);
+  closeBtn.addEventListener("click", close);
+  closeBtn2.addEventListener("click", close);
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.hidden) close();
+  });
+}
+
 const SUBJECT_COLORS = {
   Math: "#ffcc66",
   "Computer Science": "#6ee7ff",
@@ -545,10 +624,6 @@ function buildCardHtml(resource) {
   const title = escapeHtml(resource.title || "Untitled");
   const subject = escapeHtml(resource.subject || "General");
   const format = escapeHtml(String(resource.format || ""));
-  const openUrlRaw = resource?.id
-    ? `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(String(resource.id))}/open`
-    : resource.url || "#";
-  const url = escapeHtml(openUrlRaw);
   const downloadUrl = escapeHtml(resource.downloadUrl || resource.url || "#");
   const dotColor = subjectDotColor(resource.subject || "General");
 
@@ -584,7 +659,9 @@ function buildCardHtml(resource) {
         ${preview}
 
         <div class="card-actions">
-          <a class="download-btn" href="${url}" target="_blank" rel="noopener">${escapeHtml(t("openLabel"))}</a>
+          <a class="download-btn" href="#" data-action="open" data-id="${escapeHtml(String(resource.id || ""))}">${escapeHtml(
+            t("openLabel")
+          )}</a>
           <a class="download-btn" href="${downloadUrl}" target="_blank" rel="noopener">${escapeHtml(UI_TEXT.download)}</a>
           ${deleteBtn}
           <span class="format-pill">${format.toUpperCase() || "FILE"}</span>
@@ -599,10 +676,6 @@ function buildListItemHtml(resource) {
   const title = escapeHtml(resource.title || "Untitled");
   const subject = escapeHtml(resource.subject || "General");
   const format = escapeHtml(String(resource.format || ""));
-  const openUrlRaw = resource?.id
-    ? `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(String(resource.id))}/open`
-    : resource.url || "#";
-  const url = escapeHtml(openUrlRaw);
   const downloadUrl = escapeHtml(resource.downloadUrl || resource.url || "#");
 
   const canDelete = localStorage.getItem("plr_is_contributor") === "1";
@@ -624,7 +697,9 @@ function buildListItemHtml(resource) {
         </div>
       </div>
       <div class="list-actions">
-        <a class="list-open" href="${url}" target="_blank" rel="noopener">${escapeHtml(t("openLabel"))}</a>
+        <a class="list-open" href="#" data-action="open" data-id="${escapeHtml(String(resource.id || ""))}">${escapeHtml(
+          t("openLabel")
+        )}</a>
         <a class="list-open" href="${downloadUrl}" target="_blank" rel="noopener">${escapeHtml(UI_TEXT.download)}</a>
         ${deleteBtn}
       </div>
@@ -1310,6 +1385,7 @@ async function bootstrap() {
   initWhatsAppFab();
   initSidebar();
   initDeleteActions();
+  initReader();
   initTypeGroup();
   initAddModal();
   initSettingsModal();
