@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import multer from "multer";
 import { createClient } from "@supabase/supabase-js";
+import { promises as fs } from "fs";
+import path from "path";
 
 const {
   PORT = "8080",
@@ -41,6 +43,32 @@ const supabase = hasSupabaseConfig
 
 const app = express();
 
+const WHATSAPP_CONFIG_PATH = path.join(process.cwd(), "data", "whatsapp-config.json");
+
+async function readWhatsappConfig() {
+  try {
+    const raw = await fs.readFile(WHATSAPP_CONFIG_PATH, "utf8");
+    const parsed = JSON.parse(raw);
+    const numbers = Array.isArray(parsed?.numbers) ? parsed.numbers.map((n) => String(n || "").trim()).filter(Boolean) : [];
+    const active = String(parsed?.active || "").trim();
+    return { numbers, active: active && numbers.includes(active) ? active : numbers[0] || "" };
+  } catch {
+    return { numbers: [], active: "" };
+  }
+}
+
+async function writeWhatsappConfig(next) {
+  const numbers = Array.isArray(next?.numbers) ? next.numbers.map((n) => String(n || "").trim()).filter(Boolean) : [];
+  const activeRaw = String(next?.active || "").trim();
+  const active = activeRaw && numbers.includes(activeRaw) ? activeRaw : numbers[0] || "";
+
+  await fs.mkdir(path.dirname(WHATSAPP_CONFIG_PATH), { recursive: true });
+  const tmp = `${WHATSAPP_CONFIG_PATH}.tmp`;
+  await fs.writeFile(tmp, JSON.stringify({ numbers, active }, null, 2), "utf8");
+  await fs.rename(tmp, WHATSAPP_CONFIG_PATH);
+  return { numbers, active };
+}
+
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -73,6 +101,20 @@ app.get("/health", (_req, res) => {
 
 app.get("/api/check-code", requireAdminCode, (_req, res) => {
   res.json({ ok: true });
+});
+
+app.get("/api/whatsapp-config", async (_req, res) => {
+  const cfg = await readWhatsappConfig();
+  return res.json(cfg);
+});
+
+app.put("/api/whatsapp-config", requireAdminCode, async (req, res) => {
+  try {
+    const cfg = await writeWhatsappConfig({ numbers: req.body?.numbers, active: req.body?.active });
+    return res.json(cfg);
+  } catch (e) {
+    return res.status(500).json({ error: e?.message || "server_error" });
+  }
 });
 
 const upload = multer({

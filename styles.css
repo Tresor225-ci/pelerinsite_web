@@ -15,6 +15,29 @@
   --sidebar-w: 290px;
 }
 
+ @media (max-width: 720px) {
+  .modal-panel {
+   width: calc(100% - 18px);
+   margin: 9px auto;
+  }
+
+  .reader-panel {
+   width: calc(100% - 18px);
+  }
+
+  .reader-body {
+   max-height: calc(100vh - 160px);
+  }
+
+  .reader-body iframe {
+   height: 72vh;
+  }
+
+  .reader-body video {
+   max-height: 72vh;
+  }
+ }
+
  :root[data-theme="dark"] {
   --bg: #060714;
   --bg2: #0a0c1a;
@@ -976,6 +999,8 @@ body {
   padding: 12px 14px;
   display: grid;
   gap: 10px;
+  max-height: calc(100vh - 170px);
+  overflow: auto;
  }
 
  .reader-body iframe {

@@ -46,11 +46,75 @@ function normalizeWhatsAppPhone(input) {
   return digitsOnly;
 }
 
-function parseWhatsAppNumbers(raw) {
-  return String(raw || "")
+function normalizeWhatsAppNumbers(value) {
+  return String(value || "")
     .split(/\r?\n/)
     .map((s) => normalizeWhatsAppPhone(s))
     .filter((s) => Boolean(s) && String(s).length >= 8);
+}
+
+async function fetchSharedWhatsAppConfig() {
+  try {
+    const url = `${API_BASE_URL.replace(/\/$/, "")}/api/whatsapp-config`;
+    const resp = await fetchWithTimeout(url, { method: "GET" }, 12000);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const numbers = Array.isArray(data?.numbers) ? data.numbers.map((n) => normalizeWhatsAppPhone(n)).filter(Boolean) : [];
+    const activeRaw = String(data?.active || "").trim();
+    const active = activeRaw && numbers.includes(activeRaw) ? activeRaw : numbers[0] || "";
+    return { numbers, active };
+  } catch {
+    return null;
+  }
+}
+
+function applySharedWhatsAppConfigToLocalStorage(cfg) {
+  if (!cfg) return;
+  const numbers = Array.isArray(cfg?.numbers) ? cfg.numbers.map((n) => normalizeWhatsAppPhone(n)).filter(Boolean) : [];
+  const activeRaw = String(cfg?.active || "").trim();
+  const active = activeRaw && numbers.includes(activeRaw) ? activeRaw : numbers[0] || "";
+
+  localStorage.setItem("plr_whatsapp_numbers", JSON.stringify(numbers));
+  if (active) localStorage.setItem("plr_whatsapp_active", active);
+  else localStorage.removeItem("plr_whatsapp_active");
+
+  if (active) localStorage.setItem("plr_whatsapp_number", active);
+  else localStorage.removeItem("plr_whatsapp_number");
+}
+
+async function syncWhatsAppFromApi() {
+  const cfg = await fetchSharedWhatsAppConfig();
+  if (!cfg) return false;
+  applySharedWhatsAppConfigToLocalStorage(cfg);
+  return true;
+}
+
+async function pushWhatsAppConfigToApi({ numbers, active }) {
+  try {
+    const code = String(sessionStorage.getItem("plr_admin_code") || "").trim();
+    if (!code) return false;
+
+    const url = `${API_BASE_URL.replace(/\/$/, "")}/api/whatsapp-config`;
+    const resp = await fetchWithTimeout(
+      url,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-code": code,
+        },
+        body: JSON.stringify({ numbers, active }),
+      },
+      12000
+    );
+    if (!resp.ok) return false;
+
+    const saved = await resp.json();
+    applySharedWhatsAppConfigToLocalStorage(saved);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function getStoredWhatsAppNumbers() {
@@ -258,6 +322,8 @@ function initReader() {
   let lastUrl = "";
   let lastInlineUrl = "";
 
+  const prevBodyOverflow = document.body.style.overflow;
+
   const IMAGE_FORMATS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"]);
   const OFFICE_FORMATS = new Set(["doc", "docx", "ppt", "pptx", "xls", "xlsx"]);
 
@@ -266,6 +332,7 @@ function initReader() {
     bodyNode.innerHTML = "";
     lastUrl = "";
     lastInlineUrl = "";
+    document.body.style.overflow = prevBodyOverflow;
   }
 
   function openWithResource(resource) {
@@ -312,6 +379,7 @@ function initReader() {
 
     bodyNode.innerHTML = html;
     modal.hidden = false;
+    document.body.style.overflow = "hidden";
   }
 
   grid.addEventListener("click", (e) => {
@@ -1325,6 +1393,10 @@ function initSettingsModal() {
   }
 
   function open() {
+    syncWhatsAppFromApi().then(() => {
+      initWhatsAppFab();
+    });
+
     if (apiInput) {
       apiInput.value = DEFAULT_API_BASE_URL;
       apiInput.readOnly = true;
@@ -1436,9 +1508,10 @@ function initSettingsModal() {
       if (active) localStorage.setItem("plr_whatsapp_active", active);
       else localStorage.removeItem("plr_whatsapp_active");
 
-      // legacy key: keep in sync for backward compatibility
       if (active) localStorage.setItem("plr_whatsapp_number", active);
       else localStorage.removeItem("plr_whatsapp_number");
+
+      pushWhatsAppConfigToApi({ numbers, active });
     }
 
     localStorage.setItem("plr_lang", lang === "fr" ? "fr" : "de");
@@ -1507,6 +1580,9 @@ function initWhatsAppFab() {
 async function bootstrap() {
   applyTheme();
   applyLanguage();
+  syncWhatsAppFromApi().then(() => {
+    initWhatsAppFab();
+  });
   initTabs();
   initViewToggle();
   initFilters();
