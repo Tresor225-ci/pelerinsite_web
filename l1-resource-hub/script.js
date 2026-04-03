@@ -1327,6 +1327,14 @@ function initSettingsModal() {
     statusNode.classList.toggle("is-success", variant === "success");
   }
 
+  function setSubmitting(isSubmitting) {
+    const submitting = Boolean(isSubmitting);
+    if (submitBtn) submitBtn.disabled = submitting;
+    if (cancelBtn) cancelBtn.disabled = submitting;
+    if (closeBtn) closeBtn.disabled = submitting;
+    for (const btn of openBtns) btn.disabled = submitting;
+  }
+
   function renderWhatsAppFields() {
     const isContributor = localStorage.getItem("plr_is_contributor") === "1";
     if (!isContributor) return;
