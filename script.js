@@ -1547,6 +1547,12 @@ function initWhatsAppFab() {
   const defaultMessage = t("waDefaultMessage");
 
   if (!phoneNumber) {
+    // If the user has no local number yet, try to pull the shared config from the backend
+    // (so non-authorized users can still access WhatsApp configured by the admin).
+    syncWhatsAppFromApi().then((updated) => {
+      if (updated) initWhatsAppFab();
+    });
+
     fab.setAttribute("href", "#");
     fab.onclick = (e) => {
       e.preventDefault();
@@ -1587,7 +1593,6 @@ async function bootstrap() {
   initViewToggle();
   initFilters();
   initSort();
-  initWhatsAppFab();
   initSidebar();
   initDeleteActions();
   initReader();
