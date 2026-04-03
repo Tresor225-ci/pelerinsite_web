@@ -222,52 +222,82 @@
         </div>
 
         <form class="form" id="settingsForm">
-          <label class="field">
-            <span class="field-label" id="uiApiLabel">Backend-URL (API_BASE_URL)</span>
-            <input name="apiBaseUrl" placeholder="https://pelerinsite-web.onrender.com" readonly />
-          </label>
+          <div class="settings-layout">
+            <aside class="settings-nav" aria-label="Navigation">
+              <button class="settings-nav-item is-active" type="button" data-settings-tab="general">Général</button>
+              <button class="settings-nav-item" type="button" data-settings-tab="access">Accès</button>
+              <button class="settings-nav-item" type="button" data-settings-tab="whatsapp">WhatsApp</button>
+              <button class="settings-nav-item" type="button" data-settings-tab="language">Langue</button>
+              <button class="settings-nav-item" type="button" data-settings-tab="theme">Thème</button>
+            </aside>
 
-          <div class="field-row">
-            <label class="field">
-              <span class="field-label" id="uiContributorCodeLabel">Code contributeur</span>
-              <input name="contributorCode" type="password" autocomplete="current-password" />
-            </label>
+            <div class="settings-main">
+              <section class="settings-card" aria-label="Général" data-settings-panel="general">
+                <div class="settings-card-title">Général</div>
 
-            <div class="field">
-              <span class="field-label">&nbsp;</span>
-              <button class="secondary" type="button" id="contributorVerifyBtn">Valider</button>
+                <label class="field">
+                  <span class="field-label" id="uiApiLabel">Backend-URL (API_BASE_URL)</span>
+                  <input name="apiBaseUrl" placeholder="https://pelerinsite-web.onrender.com" readonly />
+                </label>
+              </section>
+
+              <section class="settings-card" aria-label="Accès" data-settings-panel="access">
+                <div class="settings-card-title">Accès</div>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span class="field-label" id="uiContributorCodeLabel">Code contributeur</span>
+                    <input name="contributorCode" type="password" autocomplete="current-password" />
+                  </label>
+
+                  <div class="field">
+                    <span class="field-label">&nbsp;</span>
+                    <button class="secondary" type="button" id="contributorVerifyBtn">Valider</button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="settings-card" id="waSection" hidden aria-label="WhatsApp" data-settings-panel="whatsapp">
+                <div class="settings-card-title">WhatsApp</div>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span class="field-label" id="uiWaLabel">WhatsApp Nummern</span>
+                    <textarea name="whatsAppNumbers" id="waNumbers" rows="5" placeholder="z.B. 491234567890\n33612345678"></textarea>
+                  </label>
+
+                  <label class="field">
+                    <span class="field-label" id="uiWaActiveLabel">Aktiver WhatsApp</span>
+                    <select name="whatsAppActive" id="waActiveSelect"></select>
+                  </label>
+                </div>
+              </section>
+
+              <section class="settings-card" aria-label="Langue" data-settings-panel="language">
+                <div class="settings-card-title">Langue</div>
+
+                <label class="field">
+                  <span class="field-label" id="uiLangLabel">Sprache</span>
+                  <select name="lang" id="langSelect">
+                    <option value="de" selected>Deutsch</option>
+                    <option value="fr">Français</option>
+                  </select>
+                </label>
+              </section>
+
+              <section class="settings-card" aria-label="Thème" data-settings-panel="theme">
+                <div class="settings-card-title">Thème</div>
+
+                <label class="field">
+                  <span class="field-label" id="uiThemeLabel">Thema</span>
+                  <select name="theme" id="themeSelect">
+                    <option value="dark" selected>Full dark</option>
+                    <option value="light">Full blanc</option>
+                    <option value="ard">ARD Sounds</option>
+                  </select>
+                </label>
+              </section>
             </div>
-          </div>
-
-          <div class="field-row" id="waSection" hidden>
-            <label class="field">
-              <span class="field-label" id="uiWaLabel">WhatsApp Nummern</span>
-              <textarea name="whatsAppNumbers" id="waNumbers" rows="5" placeholder="z.B. 491234567890\n33612345678"></textarea>
-            </label>
-
-            <label class="field">
-              <span class="field-label" id="uiWaActiveLabel">Aktiver WhatsApp</span>
-              <select name="whatsAppActive" id="waActiveSelect"></select>
-            </label>
-          </div>
-
-          <div class="field-row">
-            <label class="field">
-              <span class="field-label" id="uiLangLabel">Sprache</span>
-              <select name="lang" id="langSelect">
-                <option value="de" selected>Deutsch</option>
-                <option value="fr">Français</option>
-              </select>
-            </label>
-
-            <label class="field">
-              <span class="field-label" id="uiThemeLabel">Thema</span>
-              <select name="theme" id="themeSelect">
-                <option value="dark" selected>Full dark</option>
-                <option value="light">Full blanc</option>
-                <option value="ard">ARD Sounds</option>
-              </select>
-            </label>
           </div>
 
           <div class="form-status" id="settingsStatus" role="status" aria-live="polite"></div>
