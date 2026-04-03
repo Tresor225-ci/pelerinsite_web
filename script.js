@@ -20,6 +20,20 @@ const UI_PREFS = {
   theme: localStorage.getItem("plr_theme") || "dark",
 };
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return resp;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 function normalizeWhatsAppPhone(input) {
   const raw = String(input || "").trim();
   if (!raw) return "";
@@ -151,7 +165,7 @@ async function loadRemoteResources() {
   if (!API_BASE_URL) return;
 
   try {
-    const resp = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/api/resources`);
+    const resp = await fetchWithTimeout(`${API_BASE_URL.replace(/\/$/, "")}/api/resources`);
     if (!resp.ok) throw new Error("fetch_failed");
     const json = await resp.json();
     remoteResources = Array.isArray(json.resources) ? json.resources : [];
@@ -192,12 +206,16 @@ function initDeleteActions() {
 
     try {
       const url = `${API_BASE_URL.replace(/\/$/, "")}/api/resources/${encodeURIComponent(id)}`;
-      const resp = await fetch(url, {
+      const resp = await fetchWithTimeout(
+        url,
+        {
         method: "DELETE",
         headers: {
           "x-admin-code": adminCode,
         },
-      });
+        },
+        12000
+      );
 
       if (!resp.ok) {
         if (resp.status === 401 || resp.status === 403) {
@@ -1040,13 +1058,17 @@ function initAddModal() {
 
     const url = `${API_BASE_URL.replace(/\/$/, "")}/api/upload`;
 
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "x-admin-code": adminCode,
+    fetchWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "x-admin-code": adminCode,
+        },
+        body,
       },
-      body,
-    })
+      45000
+    )
       .then(async (resp) => {
         if (!resp.ok) {
           const err = await resp.json().catch(() => ({}));
@@ -1149,6 +1171,55 @@ function initSettingsModal() {
   const contributorCodeInput = form.querySelector('input[name="contributorCode"]');
   const contributorVerifyBtn = document.getElementById("contributorVerifyBtn");
 
+  const settingsNavItems = Array.from(form.querySelectorAll(".settings-nav-item[data-settings-tab]"));
+  const settingsPanels = Array.from(form.querySelectorAll("[data-settings-panel]"));
+
+  function getAvailableTabIds() {
+    const ids = new Set(settingsPanels.filter((p) => !p.hidden).map((p) => String(p.dataset.settingsPanel || "").trim()));
+    return ids;
+  }
+
+  function setActiveSettingsTab(tabId) {
+    const id = String(tabId || "").trim();
+    if (!id) return;
+
+    const available = getAvailableTabIds();
+    const nextId = available.has(id) ? id : available.has("general") ? "general" : Array.from(available)[0];
+    if (!nextId) return;
+
+    for (const btn of settingsNavItems) {
+      btn.classList.toggle("is-active", String(btn.dataset.settingsTab) === nextId);
+    }
+
+    for (const panel of settingsPanels) {
+      const panelId = String(panel.dataset.settingsPanel || "").trim();
+
+      // Keep permission-based hiding intact (e.g. WhatsApp locked behind contributor code)
+      if (panel.hidden) {
+        panel.classList.add("is-tab-hidden");
+        continue;
+      }
+
+      panel.classList.toggle("is-tab-hidden", panelId !== nextId);
+    }
+  }
+
+  function refreshSettingsTabs() {
+    const available = getAvailableTabIds();
+
+    for (const btn of settingsNavItems) {
+      const id = String(btn.dataset.settingsTab || "").trim();
+      const isAvailable = available.has(id);
+      btn.disabled = !isAvailable;
+      btn.style.opacity = isAvailable ? "1" : "0.55";
+      btn.style.cursor = isAvailable ? "pointer" : "not-allowed";
+    }
+
+    const activeBtn = settingsNavItems.find((b) => b.classList.contains("is-active"));
+    const activeId = String(activeBtn?.dataset.settingsTab || "").trim();
+    setActiveSettingsTab(activeId || "general");
+  }
+
   function refreshResourcesUi() {
     const q = (document.getElementById("searchInput")?.value || "").toString();
     UI_STATE.query = q;
@@ -1172,6 +1243,8 @@ function initSettingsModal() {
     if (waNumbers) waNumbers.disabled = !isEnabled;
     if (waActiveSelect) waActiveSelect.disabled = !isEnabled;
 
+    refreshSettingsTabs();
+
     refreshResourcesUi();
   }
 
@@ -1186,12 +1259,16 @@ function initSettingsModal() {
 
     try {
       const url = `${API_BASE_URL.replace(/\/$/, "")}/api/check-code`;
-      const resp = await fetch(url, {
-        method: "GET",
-        headers: {
-          "x-admin-code": code,
+      const resp = await fetchWithTimeout(
+        url,
+        {
+          method: "GET",
+          headers: {
+            "x-admin-code": code,
+          },
         },
-      });
+        12000
+      );
 
       if (!resp.ok) throw new Error("unauthorized");
 
@@ -1266,7 +1343,15 @@ function initSettingsModal() {
     if (langSelect) langSelect.value = UI_PREFS.lang;
     if (themeSelect) themeSelect.value = UI_PREFS.theme === "blue" ? "ard" : UI_PREFS.theme;
     setStatus("", "");
+    refreshSettingsTabs();
     modal.hidden = false;
+  }
+
+  for (const btn of settingsNavItems) {
+    btn.addEventListener("click", () => {
+      if (btn.disabled) return;
+      setActiveSettingsTab(btn.dataset.settingsTab);
+    });
   }
 
   if (contributorVerifyBtn) {

@@ -964,6 +964,10 @@ body {
   overflow: hidden;
 }
 
+ #settingsModal .modal-panel {
+  width: min(940px, calc(100% - 28px));
+ }
+
  .reader-panel {
   width: min(980px, calc(100% - 20px));
  }
@@ -1030,6 +1034,62 @@ body {
   gap: 12px;
 }
 
+ .settings-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 14px;
+  align-items: start;
+ }
+
+ .settings-nav {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.18);
+ }
+
+ .settings-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+ }
+
+ .settings-nav-item.is-active {
+  border-color: rgba(125, 76, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(125, 76, 255, 0.12);
+ }
+
+ .settings-main {
+  display: grid;
+  gap: 12px;
+ }
+
+ .settings-card {
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.18);
+ }
+
+ .settings-card.is-tab-hidden {
+  display: none;
+ }
+
+ .settings-card-title {
+  font-weight: 900;
+  margin-bottom: 10px;
+ }
+
 .form-status {
   min-height: 18px;
   font-size: 12px;
@@ -1055,6 +1115,7 @@ body {
 }
 
 .field input,
+.field textarea,
 .field select {
   width: 100%;
   padding: 11px 12px;
@@ -1066,10 +1127,17 @@ body {
 }
 
 .field input:focus,
+.field textarea:focus,
 .field select:focus {
   border-color: rgba(125, 76, 255, 0.65);
   box-shadow: 0 0 0 4px rgba(125, 76, 255, 0.18);
 }
+
+ @media (max-width: 720px) {
+  .settings-layout {
+   grid-template-columns: 1fr;
+  }
+ }
 
 .field-row {
   display: grid;

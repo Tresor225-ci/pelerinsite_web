@@ -6,7 +6,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "lint": "eslint .",
+    "smoke": "node smoke.mjs"
+  },
+  "devDependencies": {
+    "eslint": "^9.10.0"
   },
   "dependencies": {
     "cors": "^2.8.5",
