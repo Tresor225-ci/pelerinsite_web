@@ -1326,6 +1326,35 @@ function initSettingsModal() {
     statusNode.classList.toggle("is-success", variant === "success");
   }
 
+  function renderWhatsAppFields() {
+    const isContributor = localStorage.getItem("plr_is_contributor") === "1";
+    if (!isContributor) return;
+
+    const numbers = getStoredWhatsAppNumbers();
+    const active = getActiveWhatsAppNumber();
+
+    if (waNumbers) waNumbers.value = numbers.join("\n");
+
+    if (waActiveSelect) {
+      waActiveSelect.innerHTML = "";
+      for (const n of numbers) {
+        const opt = document.createElement("option");
+        opt.value = n;
+        opt.textContent = n;
+        waActiveSelect.appendChild(opt);
+      }
+
+      if (numbers.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "-";
+        waActiveSelect.appendChild(opt);
+      }
+
+      waActiveSelect.value = active;
+    }
+  }
+
   function setContributorEnabled(enabled) {
     const isEnabled = Boolean(enabled);
     if (isEnabled) localStorage.setItem("plr_is_contributor", "1");
@@ -1368,27 +1397,10 @@ function initSettingsModal() {
       sessionStorage.setItem("plr_admin_code", code);
       setStatus("OK", "success");
 
-      const numbers = getStoredWhatsAppNumbers();
-      const active = getActiveWhatsAppNumber();
-      if (waNumbers) waNumbers.value = numbers.join("\n");
-      if (waActiveSelect) {
-        waActiveSelect.innerHTML = "";
-        for (const n of numbers) {
-          const opt = document.createElement("option");
-          opt.value = n;
-          opt.textContent = n;
-          waActiveSelect.appendChild(opt);
-        }
+      await syncWhatsAppFromApi();
+      renderWhatsAppFields();
+      initWhatsAppFab();
 
-        if (numbers.length === 0) {
-          const opt = document.createElement("option");
-          opt.value = "";
-          opt.textContent = "-";
-          waActiveSelect.appendChild(opt);
-        }
-
-        waActiveSelect.value = active;
-      }
     } catch {
       setContributorEnabled(false);
       sessionStorage.removeItem("plr_admin_code");
@@ -1398,6 +1410,7 @@ function initSettingsModal() {
 
   function open() {
     syncWhatsAppFromApi().then(() => {
+      renderWhatsAppFields();
       initWhatsAppFab();
     });
 
@@ -1411,30 +1424,7 @@ function initSettingsModal() {
 
     refreshResourcesUi();
 
-    const numbers = getStoredWhatsAppNumbers();
-    const active = getActiveWhatsAppNumber();
-
-    if (isContributor) {
-      if (waNumbers) waNumbers.value = numbers.join("\n");
-      if (waActiveSelect) {
-        waActiveSelect.innerHTML = "";
-        for (const n of numbers) {
-          const opt = document.createElement("option");
-          opt.value = n;
-          opt.textContent = n;
-          waActiveSelect.appendChild(opt);
-        }
-
-        if (numbers.length === 0) {
-          const opt = document.createElement("option");
-          opt.value = "";
-          opt.textContent = "-";
-          waActiveSelect.appendChild(opt);
-        }
-
-        waActiveSelect.value = active;
-      }
-    }
+    renderWhatsAppFields();
 
     if (langSelect) langSelect.value = UI_PREFS.lang;
     if (themeSelect) themeSelect.value = UI_PREFS.theme === "blue" ? "ard" : UI_PREFS.theme;
