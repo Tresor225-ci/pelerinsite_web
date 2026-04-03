@@ -256,11 +256,16 @@ function initReader() {
   if (!grid || !modal || !overlay || !closeBtn || !closeBtn2 || !openNewTabBtn || !bodyNode) return;
 
   let lastUrl = "";
+  let lastInlineUrl = "";
+
+  const IMAGE_FORMATS = new Set(["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"]);
+  const OFFICE_FORMATS = new Set(["doc", "docx", "ppt", "pptx", "xls", "xlsx"]);
 
   function close() {
     modal.hidden = true;
     bodyNode.innerHTML = "";
     lastUrl = "";
+    lastInlineUrl = "";
   }
 
   function openWithResource(resource) {
@@ -274,19 +279,33 @@ function initReader() {
         : String(resource?.url || "#");
 
     lastUrl = openUrl;
+    lastInlineUrl = openUrl;
     if (titleNode) titleNode.textContent = String(resource?.title || "Reader");
 
     const safeUrl = escapeHtml(openUrl);
 
+    const isImage = type === "image" || IMAGE_FORMATS.has(format);
+    const isVideo = type === "video";
+    const isAudio = type === "audio";
+    const isPdf = format === "pdf";
+    const isOfficeDoc = OFFICE_FORMATS.has(format);
+
+    if (isOfficeDoc) {
+      const officeUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(openUrl)}`;
+      lastInlineUrl = officeUrl;
+    }
+
     let html = "";
-    if (type === "video") {
+    if (isVideo) {
       html = `<video controls preload="metadata" src="${safeUrl}"></video>`;
-    } else if (type === "audio") {
+    } else if (isAudio) {
       html = `<audio controls preload="metadata" src="${safeUrl}"></audio>`;
-    } else if (type === "image") {
+    } else if (isImage) {
       html = `<img src="${safeUrl}" alt="${escapeHtml(String(resource?.title || "image"))}" />`;
-    } else if (format === "pdf") {
+    } else if (isPdf) {
       html = `<iframe src="${safeUrl}" title="${escapeHtml(String(resource?.title || "pdf"))}"></iframe>`;
+    } else if (isOfficeDoc && lastInlineUrl) {
+      html = `<iframe src="${escapeHtml(lastInlineUrl)}" title="${escapeHtml(String(resource?.title || "document"))}"></iframe>`;
     } else {
       html = `<iframe src="${safeUrl}" title="${escapeHtml(String(resource?.title || "file"))}"></iframe>`;
     }
@@ -310,8 +329,9 @@ function initReader() {
   });
 
   openNewTabBtn.addEventListener("click", () => {
-    if (!lastUrl) return;
-    window.open(lastUrl, "_blank", "noopener");
+    const url = lastUrl || lastInlineUrl;
+    if (!url) return;
+    window.open(url, "_blank", "noopener");
   });
 
   overlay.addEventListener("click", close);
